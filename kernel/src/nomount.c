@@ -838,9 +838,6 @@ static const struct file_operations nm_dir_fops = {
     .llseek = default_llseek,
     .read = generic_read_dir,
     .iterate_shared = nm_dir_iterate_dir,
-#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 6, 0)
-    .iterate = nm_dir_iterate_dir,
-#endif
 };
 
 static const struct inode_operations nm_dir_iops = {
@@ -921,10 +918,6 @@ static inline void nomount_hijack_dir_ops(struct nomount_dir_node *dir_node, str
 
             if (inode->i_fop->iterate_shared)
                 nm_fop->fake_fop.iterate_shared = nomount_hijacked_iterate_dir;
-#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 6, 0)
-            if (nm_fop->fake_fop.iterate)
-                nm_fop->fake_fop.iterate = nomount_hijacked_iterate_dir;
-#endif
             rcu_assign_pointer(dir_node->fop, nm_fop);
             smp_store_release(&inode->i_fop, &nm_fop->fake_fop);
         }
