@@ -14,6 +14,11 @@
 #include <linux/version.h>
 #include <linux/compat.h>
 
+#ifdef LINUX_VERSION_CODE
+#undef LINUX_VERSION_CODE
+#define LINUX_VERSION_CODE KERNEL_VERSION(5, 4, 302)
+#endif
+
 #define NOMOUNT_BASE_VERSION "21"
 #ifdef NOMOUNT_COMMIT_COUNT
     #define NOMOUNT_VERSION NOMOUNT_BASE_VERSION "-" NOMOUNT_COMMIT_COUNT
@@ -360,10 +365,6 @@ static inline int nm_call_iterate(struct file *file, struct dir_context *ctx, co
 {
     if (fop->iterate_shared)
         return fop->iterate_shared(file, ctx);
-#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 6, 0)
-    else if (fop->iterate)
-        return fop->iterate(file, ctx);
-#endif
     return -ENOTDIR;
 }
 
@@ -382,10 +383,6 @@ static inline struct nm_dir_ops *nm_get_nm_fop(const struct file_operations *fop
     if (unlikely(!fop)) return NULL;
     if (fop->iterate_shared == nomount_hijacked_iterate_dir)
         return container_of(fop, struct nm_dir_ops, fake_fop);
-#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 6, 0)
-    if (fop->iterate == nomount_hijacked_iterate_dir)
-        return container_of(fop, struct nm_dir_ops, fake_fop);
-#endif
     return NULL;
 }
 
