@@ -907,9 +907,6 @@ static const struct file_operations nm_dir_fops = {
     .llseek = default_llseek,
     .read = generic_read_dir,
     .iterate_shared = nm_dir_iterate_dir,
-#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 6, 0)
-    .iterate = nm_dir_iterate_dir,
-#endif
 };
 
 static const struct inode_operations nm_dir_iops = {
@@ -976,9 +973,6 @@ static inline int nomount_hijack_dir_ops(struct nomount_dir_node *dir_node, stru
     struct nm_dir_ops *ops;
     int err;
     bool iterate = fop && (fop->iterate_shared
-#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 6, 0)
-        || fop->iterate
-#endif
     );
 
     if ((ops = nm_get_nm_iop(iop)) || (ops = nm_get_nm_fop(fop))) {
@@ -1003,9 +997,6 @@ static inline int nomount_hijack_dir_ops(struct nomount_dir_node *dir_node, stru
         ops->fake_fop = *fop;
         ops->fake_fop.owner = THIS_MODULE;
         if (fop->iterate_shared) ops->fake_fop.iterate_shared = nomount_hijacked_iterate_dir;
-#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 6, 0)
-        if (fop->iterate) ops->fake_fop.iterate = nomount_hijacked_iterate_dir;
-#endif
     }
     atomic_inc(&dir_node->refs);
     if (iop) smp_store_release(&inode->i_op, &ops->fake_iop);
